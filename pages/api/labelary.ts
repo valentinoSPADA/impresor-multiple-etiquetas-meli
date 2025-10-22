@@ -1,4 +1,10 @@
-export default async function handler(req: any, res: any) {
+import sharp from "sharp";
+import type { NextApiRequest, NextApiResponse } from "next";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -27,11 +33,17 @@ export default async function handler(req: any, res: any) {
     }
 
     const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const originalBuffer = Buffer.from(arrayBuffer);
+
+    // Rotar la imagen 180 grados
+    const rotatedBuffer = await sharp(originalBuffer)
+      .rotate(180)
+      .png()
+      .toBuffer();
 
     res.setHeader("Content-Type", "image/png");
-    res.setHeader("Content-Length", buffer.length);
-    res.status(200).send(buffer);
+    res.setHeader("Content-Length", rotatedBuffer.length);
+    res.status(200).send(rotatedBuffer);
   } catch (error) {
     console.error("Server error:", error);
     res.status(500).json({ error: "Error generando etiqueta" });
