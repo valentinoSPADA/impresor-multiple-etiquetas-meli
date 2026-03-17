@@ -3,6 +3,7 @@ import React from "react";
 export default function TextAreaZpl() {
   const [multipleZpl, setMultipleZpl] = React.useState<string[]>([]);
   const [zpl, setZpl] = React.useState<string>("");
+  const [type, setType] = React.useState<"split" | "correo">("split");
 
   function splitZplLabels(zplText: string): string[] {
     // Dividir por ^XA y filtrar strings vacíos
@@ -20,8 +21,21 @@ export default function TextAreaZpl() {
     return labels.filter((label) => label.length > 3); // Filtrar etiquetas muy cortas
   }
 
+  function splitCorreoArgentinoLabels(zplText: string): string[] {
+    const regex = /\^XA[\s\S]*?\^XA\^MCY\^XZ/g;
+
+    const matches = zplText.match(regex);
+
+    if (!matches) return [];
+
+    return matches
+      .map((label) => label.trim())
+      .filter((label) => label.length > 0);
+  }
+
   function agregarEtiquetas() {
-    const etiquetas = splitZplLabels(zpl);
+    const etiquetas =
+      type === "split" ? splitZplLabels(zpl) : splitCorreoArgentinoLabels(zpl);
     setMultipleZpl([...multipleZpl, ...etiquetas]);
     setZpl("");
   }
@@ -62,21 +76,21 @@ export default function TextAreaZpl() {
   }
   return (
     <>
-      <div className="flex justify-between mb-4 items-center gap-3">
-        <div className="flex gap-4">
-          <p>Cantidad de etiquetas: {multipleZpl.length}</p>
-          {zpl && (
-            <p className="text-blue-600">
-              Etiquetas detectadas en el ZPL: {splitZplLabels(zpl).length}
-            </p>
-          )}
-        </div>
-        <button
-          className="text-red-500 rounded bg-amber-50 p-2"
-          onClick={() => setMultipleZpl([])}
+      <div className="flex gap-5 justify-center items-center">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"></label>
+        Tipo de división de etiquetas:
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value as "split" | "correo")}
+          className=" p-2 border border-gray-300 rounded-md"
         >
-          Eliminar todas
-        </button>
+          <option value="split" className="text-gray-700">
+            Meli
+          </option>
+          <option value="correo" className="text-gray-700">
+            Correo Argentino
+          </option>
+        </select>
       </div>
       <textarea
         className="w-full h-64 p-4 border border-zinc-300 rounded-md"
@@ -84,16 +98,36 @@ export default function TextAreaZpl() {
         value={zpl}
         onChange={(e) => setZpl(e.target.value)}
       />
+      <div className="flex justify-between mb-4 items-center gap-3">
+        <div className="flex gap-4">
+          <p>Cantidad de etiquetas: {multipleZpl.length}</p>
+          {zpl && (
+            <p className="text-blue-600">
+              Etiquetas detectadas en el ZPL:{" "}
+              {type === "split"
+                ? splitZplLabels(zpl).length
+                : splitCorreoArgentinoLabels(zpl).length}
+            </p>
+          )}
+        </div>
+        <button
+          className="bg-red-500 rounded text-amber-50 p-2"
+          onClick={() => setMultipleZpl([])}
+        >
+          Eliminar todas
+        </button>
+      </div>
       <div className="flex gap-2">
         <button
           onClick={agregarEtiquetas}
-          className="inline-block rounded bg-green-500 px-4 py-2 text-white"
+          className="inline-block rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 transition-colors cursor-pointer"
         >
           Sumar etiqueta(s)
         </button>
         <button
+          disabled={multipleZpl.length === 0}
           onClick={generarEtiqueta}
-          className="inline-block rounded bg-blue-500 px-4 py-2 text-white"
+          className="inline-block rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Descargar Etiqueta
         </button>
