@@ -85,10 +85,10 @@ export default function TextAreaZpl() {
           className=" p-2 border border-gray-300 rounded-md"
         >
           <option value="split" className="text-gray-700">
-            Meli
+            Envio CORREO
           </option>
           <option value="correo" className="text-gray-700">
-            Correo Argentino
+            Envios FLEX
           </option>
         </select>
       </div>
